@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda de Alunos</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { margin: 5px; padding: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Agenda de Alunos</h1>
+
+  <form id="alunoForm">
+    <input type="text" id="nome" placeholder="Nome" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="text" id="telefone" placeholder="Telefone" />
+    <button type="submit">Adicionar Aluno</button>
+  </form>
+
+  <table id="alunosTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Telefone</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const alunoForm = document.getElementById('alunoForm');
+    const alunosTable = document.querySelector('#alunosTable tbody');
+
+    async function carregarAlunos() {
+      const res = await fetch('/alunos');
+      const alunos = await res.json();
+      alunosTable.innerHTML = '';
+
+      alunos.forEach(aluno => {
+        const row = alunosTable.insertRow();
+        row.innerHTML = `
+          <td>${aluno.id}</td>
+          <td>${aluno.nome}</td>
+          <td>${aluno.email}</td>
+          <td>${aluno.telefone || '-'}</td>
+          <td><button onclick="excluirAluno(${aluno.id})">Excluir</button></td>
+        `;
+      });
+    }
+
+    alunoForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const email = document.getElementById('email').value;
+      const telefone = document.getElementById('telefone').value;
+
+      await fetch('/alunos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, telefone }),
+      });
+
+      alunoForm.reset();
+      carregarAlunos();
+    };
+
+    async function excluirAluno(id) {
+      await fetch(`/alunos/${id}`, { method: 'DELETE' });
+      carregarAlunos();
+    }
+
+    carregarAlunos();
+  </script>
+</body>
+</html>
